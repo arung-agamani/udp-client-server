@@ -1,0 +1,26 @@
+version: "3.0"
+services:
+  receiver_1:
+    build: .
+    volumes:
+      - ./out_1:/out
+    environment:
+      - ROLE=receiver
+    cap_add:
+      - NET_ADMIN
+  receiver_2:
+    build: .
+    volumes:
+      - ./out_2:/out
+    environment:
+      - ROLE=receiver
+    cap_add:
+      - NET_ADMIN
+  sender:
+    build: .
+    volumes:
+      - ./in:/in
+    environment:
+      - ROLE=sender
+    cap_add:
+      - NET_ADMIN

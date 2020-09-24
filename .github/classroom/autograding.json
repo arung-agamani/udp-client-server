@@ -1,0 +1,74 @@
+{
+  "tests": [
+    {
+      "name": "test-docker-connection",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/check_connection.sh",
+      "input": "",
+      "output": "success",
+      "comparison": "exact",
+      "timeout": 5,
+      "points": 0
+    },
+    {
+      "name": "grade-easy-0",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/grade.sh easy easy",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 16,
+      "points": 10
+    },
+    {
+      "name": "grade-easy-1",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/grade.sh easy hard",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 16,
+      "points": 10
+    },
+    {
+      "name": "grade-medium",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/grade.sh medium easy",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 16,
+      "points": 15
+    },
+    {
+      "name": "grade-hard-0",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/grade.sh hard easy",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 16,
+      "points": 20
+    },
+    {
+      "name": "grade-hard-1",
+      "setup": "./.github/tests/setup.sh",
+      "run": "./.github/tests/grade.sh hard hard",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 16,
+      "points": 20
+    },
+    {
+      "name": "cleanup",
+      "setup": "",
+      "run": "./.github/tests/cleanup.sh",
+      "input": "",
+      "output": "success",
+      "comparison": "exact",
+      "timeout": 3,
+      "points": 0
+    }
+  ]
+}
