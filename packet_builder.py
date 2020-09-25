@@ -7,6 +7,15 @@ class PacketType():
     FINACK = b"\x03"
 
 class Packet():
+    '''Packet Builder
+        4 arguments
+        - type which needs to be using PacketType for shorthand
+        - length : 1-byte integer
+        - seq_num : 2-bytes integer
+        - data : <length>-bytes array of bytes
+
+        Convert data into byte string or raw array of bytes first
+    '''
     def __init__(self, type, length, seq_num, data):
         self.set_type(type)
         self.data_length = length
