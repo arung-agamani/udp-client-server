@@ -19,7 +19,7 @@ class Packet():
     def __init__(self, type, length, seq_num, data):
         self.set_type(type)
         self.data_length = length
-        self.set_data(data)        
+        self.set_data(data)
         self.set_length(length)
         self.set_seq_num(seq_num)
         self.set_checksum()
@@ -42,9 +42,22 @@ class Packet():
             print('Data segmentation is too big')
         else:
             self.data = struct.pack('{}s'.format(self.data_length), data)
-    
+
     def calc_checksum(self, data):
-        return b"\x17\x70\x13"
+        sum = 0
+        data_len = len(data)
+        if (data_len % 2):
+            data_len += 1
+            data += struct.pack( '!B' , 0)
+
+        for i in range(0, data_len, 2):
+            w = (data[i] << 8) + (data[i+1])
+            sum += w
+
+        # ambil 16 dari 32 bit
+        sum = (sum >> 16) + (sum & 0xFFFF)
+        sum = ~sum
+        return sum & 0xFFFF
 
     def build(self):
         return struct.pack('cc2s2s{}s'.format(self.data_length), self.type, self.length, self.seq_num, self.checksum, self.data)
