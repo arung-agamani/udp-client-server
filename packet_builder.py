@@ -1,26 +1,51 @@
 import struct
 
 class PacketType():
-    DATA = 0x0
-    ACK = 0x1
-    FIN = 0x2
-    FINACK = 0x3
+    DATA = b"\x00"
+    ACK = b"\x01"
+    FIN = b"\x02"
+    FINACK = b"\x03"
 
 class Packet():
-    def set_type(self, type):
-        self.type = type
+    def __init__(self, type, length, seq_num, data):
+        self.set_type(type)
+        self.data_length = length
+        self.set_data(data)        
+        self.set_length(length)
+        self.set_seq_num(seq_num)
+        self.set_checksum()
+        self.buffer = self.build()
+
+    def set_type(self, _type):
+        self.type = struct.pack('c', _type)
+
+    def set_length(self, length: int):
+        self.length = struct.pack('c', length.to_bytes(1, byteorder="little"))
+
+    def set_seq_num(self, seq_num: int):
+        self.seq_num = struct.pack('2s', seq_num.to_bytes(2, byteorder="big"))
+
+    def set_checksum(self):
+        self.checksum = struct.pack('2s', b"\x17\x70")
 
     def set_data(self, data):
-        self.data = data
-
-    def set_length(self, data):
-        self.length = len(self.data)
-
-    def set_checksum(self, checksum):
-        self.checksum = checksum
+        if (len(data) > self.data_length):
+            print('Data segmentation is too big')
+        else:
+            self.data = struct.pack('{}s'.format(self.data_length), data)
     
     def calc_checksum(self, data):
-        pass
+        return b"\x17\x70\x13"
 
     def build(self):
-        pass
+        return struct.pack('cc2s2s{}s'.format(self.data_length), self.type, self.length, self.seq_num, self.checksum, self.data)
+
+    def bytes2hexstring(self, byte_obj):
+        return ''.join('{:02x}'.format(x) for x in byte_obj)
+
+    def print(self):
+        print(self.bytes2hexstring(self.type))
+        print(self.bytes2hexstring(self.length))
+        print(self.bytes2hexstring(self.seq_num))
+        print(self.bytes2hexstring(self.checksum))
+        print(self.bytes2hexstring(self.data))
