@@ -1,13 +1,64 @@
 import socket
+import time
+import threading
+import file_manager
+from packet_builder import Packet, PacketType
+from packet_unwrapper import PacketUnwrapper
 
 class Sender():
+    def __init__(self, filename, host, port):
+        self.host = host
+        self.port = port
+        self.filename = filename
+        self.packets_queue = []
+        self.create_socket()
+        self.create_file_queue()
+
     def create_file_queue(self):
+        self.packets_queue = file_manager.split(self.filename, 4)
+        print("File splitted")
+
+    def create_socket(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind(('127.0.0.1', 5000))
+        print("Socket created")
+
+    def send_packet(self, packet: Packet):
+        message = packet.buffer
+        self.socket.sendto(message, (self.host, self.port))
         pass
 
-    def send_file():
+    def send_file(self):
         # this is where things start to escalate real quickly
         # implement using Stop-and-Wait protocol
-        pass
+        seqnum = 0
+        while seqnum != len(self.packets_queue):
+            # send a packet
+            if seqnum != len(self.packets_queue) - 1:
+                print("Sending packet with seqnum : ", seqnum)
+                self.send_packet(self.packets_queue[seqnum])
+                # start timeout
+                # if packet arrives, increment seqnum
+                response, server_address = self.socket.recvfrom(2 << 16)
+                received_packet = PacketUnwrapper(response)
+                print("Received seqnum: ", received_packet.seqnum)
+                if received_packet.raw_type == 0x01: #ACK Package
+                    if received_packet.seqnum == seqnum:
+                        print("ACK packet received, sending next package, if any")
+                        seqnum += 1
+                # if timeout arrives, do nothing, let the loop goes as to send same packet
+            else: # Send FIN package
+                print("Sending FIN package")
+                self.send_packet(self.packets_queue[seqnum])
+                response, server_address = self.socket.recvfrom(2 << 16)
+                received_packet = PacketUnwrapper(response)
+                print("Received seqnum: ", received_packet.seqnum)
+                if received_packet.raw_type == 0x03:
+                    if received_packet.seqnum == seqnum:
+                        print("FIN-ACK packet received. Ending the current transmission")
+                        seqnum += 1
+                # if timeout arrives, do nothing, let the loop goes as to send same packet
 
-    def listen(self):
-        pass
+if __name__ == "__main__":
+    sender = Sender('./test.txt','127.0.0.1', 9999)
+    sender.send_file()

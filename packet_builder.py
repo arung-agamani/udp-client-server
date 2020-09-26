@@ -29,14 +29,14 @@ class Packet():
         self.type = struct.pack('c', _type)
 
     def set_length(self, length: int):
-        self.length = struct.pack('c', length.to_bytes(1, byteorder="little"))
+        self.length = struct.pack('2s', length.to_bytes(2, byteorder="big"))
 
     def set_seq_num(self, seq_num: int):
         self.seq_num = struct.pack('2s', seq_num.to_bytes(2, byteorder="big"))
 
-    def set_checksum(self):
-        self.checksum = struct.pack('2s', b"\x17\x70")
-
+    def set_checksum(self):        
+        checksum = self.calc_checksum(self.data)
+        self.checksum = struct.pack('2s', checksum.to_bytes(2, byteorder="big"))
     def set_data(self, data):
         if (len(data) > self.data_length):
             print('Data segmentation is too big')
@@ -44,23 +44,20 @@ class Packet():
             self.data = struct.pack('{}s'.format(self.data_length), data)
 
     def calc_checksum(self, data):
-        sum = 0
+        sum = 0x00
         data_len = len(data)
         if (data_len % 2):
             data_len += 1
             data += struct.pack( '!B' , 0)
 
-        for i in range(0, data_len, 2):
+        sum = (data[0] << 8) + (data[1])
+        for i in range(2, data_len, 2):
             w = (data[i] << 8) + (data[i+1])
-            sum += w
-
-        # ambil 16 dari 32 bit
-        sum = (sum >> 16) + (sum & 0xFFFF)
-        sum = ~sum
+            sum ^= w
         return sum & 0xFFFF
 
     def build(self):
-        return struct.pack('cc2s2s{}s'.format(self.data_length), self.type, self.length, self.seq_num, self.checksum, self.data)
+        return struct.pack('c2s2s2s{}s'.format(self.data_length), self.type, self.length, self.seq_num, self.checksum, self.data)
 
     def bytes2hexstring(self, byte_obj):
         return ''.join('{:02x}'.format(x) for x in byte_obj)
