@@ -10,6 +10,7 @@ class PacketUnwrapper():
         self.get_packet_length()
         self.get_packet_seqnum()
         self.get_packet_checksum()
+        self.get_packet_data()
     
     def get_packet_length(self):
         self.length = int(struct.unpack(">H", self.raw_length)[0])
@@ -19,6 +20,9 @@ class PacketUnwrapper():
 
     def get_packet_checksum(self):
         self.checksum = int(struct.unpack(">H", self.raw_checksum)[0])
+
+    def get_packet_data(self):
+        self.data = struct.unpack("{}s".format(self.length), self.raw_buffer[7:])[0]
 
     def print(self):
         print(self.raw_type)

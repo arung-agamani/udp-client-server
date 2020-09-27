@@ -1,5 +1,8 @@
 import struct
 
+def bytes2hexstring(byte_obj):
+    return ''.join('{:02x}'.format(x) for x in byte_obj)
+
 class PacketType():
     DATA = b"\x00"
     ACK = b"\x01"
@@ -58,9 +61,6 @@ class Packet():
 
     def build(self):
         return struct.pack('c2s2s2s{}s'.format(self.data_length), self.type, self.length, self.seq_num, self.checksum, self.data)
-
-    def bytes2hexstring(self, byte_obj):
-        return ''.join('{:02x}'.format(x) for x in byte_obj)
 
     def print(self):
         print(self.bytes2hexstring(self.type))
