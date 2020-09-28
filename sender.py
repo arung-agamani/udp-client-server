@@ -3,6 +3,7 @@ import errno
 import time
 import threading
 import file_manager
+import concurrent.futures
 from packet_builder import Packet, PacketType, bytes2hexstring
 from packet_unwrapper import PacketUnwrapper
 import sys
@@ -127,10 +128,8 @@ if __name__ == "__main__":
     print(inputs)
     targetList = inputs[0].split(',')
     print(targetList)
-    senderTask = []
-    for target in targetList:
-        print(">>Now sending to ", target)
-        senderTask.append(Sender(inputs[2], target, int(inputs[1])))
-        print("<<Finished sending to ", target)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        for target in targetList:
+            executor.submit(Sender, inputs[2], target, int(inputs[1]))
     # sender2 = Sender(inputs[2], inputs[0], int(inputs[1]))
     # sender2.send_file()
