@@ -1,4 +1,5 @@
 import socket
+import errno
 import time
 import threading
 import file_manager
@@ -13,18 +14,27 @@ class Sender():
         self.port = port
         self.filename = filename
         self.packets_queue = []
-        self.create_socket()
+        self.create_socket(5000)
         self.create_file_queue()
         self.send_file()
 
     def create_file_queue(self):
-        self.packets_queue = file_manager.split(self.filename, 32727)
+        self.packets_queue = file_manager.split(self.filename, 1472)
         print("File splitted")
 
-    def create_socket(self):
+    def create_socket(self, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind(('', 5000))
-        print("Socket created")
+        try:
+            self.socket.bind(('', port))
+            print("Socket created")
+        except socket.error as err:
+            if err.errno == errno.EADDRINUSE:
+                print("This address {} already in use, trying {}".format(
+                    port, port + 1))
+                self.create_socket(port+1)
+            else:
+                print("Unknown error")
+                print(err)
 
     def send_packet(self, packet: Packet):
         message = packet.buffer
