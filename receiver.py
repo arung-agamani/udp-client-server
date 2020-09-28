@@ -13,7 +13,7 @@ class Receiver():
         self.port = port
         self.out_dir = out_dir
         self.socket = None
-        self.filemanager = FileManager('./out/test-'+str(self.port)+'.bin', 4)
+        self.filemanager = FileManager('./out/downloaded', 4)
         self.listen_socket()
         self.listen()
 
