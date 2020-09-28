@@ -4,9 +4,6 @@ from packet_builder import Packet, PacketType, bytes2hexstring
 from packet_unwrapper import PacketUnwrapper
 from file_manager import FileManager
 
-import time  # to simulate delaying packets
-import random  # to randomly choose delay time
-
 
 class Receiver():
     def __init__(self, port, out_dir):
@@ -35,7 +32,7 @@ class Receiver():
                     self.filemanager.add(packet.data)
                     # if random.random() < 0.05:
                     #     time.sleep(1.1)
-                    sent = self.socket.sendto(
+                    self.socket.sendto(
                         Packet(PacketType.ACK, 1, packet.seqnum, b"\x00").buffer, client_address)
                     if seqnum % 5 == 0:
                         self.filemanager.write()
@@ -43,7 +40,7 @@ class Receiver():
                     pass
             elif packet.raw_type == 0x02:
                 self.filemanager.add(packet.data)
-                sent = self.socket.sendto(
+                self.socket.sendto(
                     Packet(PacketType.FINACK, 1, packet.seqnum, b"\x00").buffer, client_address)
                 self.filemanager.write_end()
                 break

@@ -22,7 +22,7 @@ class Sender():
         self.socket.close()
 
     def create_file_queue(self):
-        self.packets_queue = file_manager.split(self.filename, 32767)
+        self.packets_queue = file_manager.split(self.filename, (2 << 14))
         print("File splitted")
 
     def create_socket(self, _port):
@@ -76,15 +76,17 @@ class Sender():
                             seqnum += 1
                             totalConsecutiveRetry = 0
                 except socket.timeout:
-                    print("Timeout on sending packet seqnum:", seqnum)
+                    print("Timeout on sending packet seqnum:",
+                          seqnum, file=sys.stderr)
                     print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
                     if seqnum != 0:
                         self.socket.settimeout(2 * initialTimeout)
                         initialTimeout *= 2
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.")
+                    print("Connection reset. Peer is probably not open.",
+                          file=sys.stderr)
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
             else:  # Send FIN package
                 try:
@@ -102,13 +104,14 @@ class Sender():
                             totalConsecutiveRetry = 0
                 except socket.timeout:
                     print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
                     if seqnum != 0:
                         self.socket.settimeout(2 * initialTimeout)
                         initialTimeout *= 2
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.")
+                    print("Connection reset. Peer is probably not open.",
+                          file=sys.stderr)
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
 
 # get input dari run_sender.h
