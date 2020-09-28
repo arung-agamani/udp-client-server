@@ -18,6 +18,7 @@ class Sender():
         self.create_socket(5000)
         self.create_file_queue()
         self.send_file()
+        self.socket.close()
 
     def create_file_queue(self):
         self.packets_queue = file_manager.split(self.filename, 32767)
@@ -46,9 +47,12 @@ class Sender():
         # implement using Stop-and-Wait protocol
         seqnum = 0
         initialTimeout = 3
+        totalConsecutiveRetry = 0
         self.socket.settimeout(initialTimeout)
         while seqnum != len(self.packets_queue):
             # send a packet
+            if totalConsecutiveRetry > 6:
+                break
             if seqnum != len(self.packets_queue) - 1:
                 # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
                 self.send_packet(self.packets_queue[seqnum])
@@ -75,6 +79,7 @@ class Sender():
                         "Re-attempting with time window {} seconds".format(2*initialTimeout))
                     self.socket.settimeout(2 * initialTimeout)
                     initialTimeout *= 2
+                    totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
@@ -96,6 +101,7 @@ class Sender():
                         "Re-attempting with time window {} seconds".format(2*initialTimeout))
                     self.socket.settimeout(2 * initialTimeout)
                     initialTimeout *= 2
+                    totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
@@ -123,6 +129,8 @@ if __name__ == "__main__":
     print(targetList)
     senderTask = []
     for target in targetList:
+        print(">>Now sending to ", target)
         senderTask.append(Sender(inputs[2], target, int(inputs[1])))
+        print("<<Finished sending to ", target)
     # sender2 = Sender(inputs[2], inputs[0], int(inputs[1]))
     # sender2.send_file()
