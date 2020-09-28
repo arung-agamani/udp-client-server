@@ -14,24 +14,24 @@ class Sender():
         self.port = port
         self.filename = filename
         self.packets_queue = []
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.create_socket(5000)
         self.create_file_queue()
         self.send_file()
 
     def create_file_queue(self):
-        self.packets_queue = file_manager.split(self.filename, 1472)
+        self.packets_queue = file_manager.split(self.filename, 32767)
         print("File splitted")
 
-    def create_socket(self, port):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def create_socket(self, _port):
         try:
-            self.socket.bind(('', port))
+            self.socket.bind(('', _port))
             print("Socket created")
         except socket.error as err:
             if err.errno == errno.EADDRINUSE:
                 print("This address {} already in use, trying {}".format(
-                    port, port + 1))
-                self.create_socket(port+1)
+                    _port, _port + 1))
+                self.create_socket(_port+1)
             else:
                 print("Unknown error")
                 print(err)
