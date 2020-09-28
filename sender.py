@@ -76,18 +76,18 @@ class Sender():
 
 # get input dari run_sender.h
 # return input yg berisi address, port, dan path file
-def get_input():
+def get_input ():
     inputs = [] # 3 input untuk sender
     for line in sys.stdin:
-        sys.stdout.write(line)
-        line = (line.replace("-e","")).replace("\n","")
-        inputs.append(line)
+        line = ((line.replace("-e","")).replace("\n","")).replace(" ","")
+        inputs.append(line)   
     return inputs
 
 if __name__ == "__main__":
-    sender = Sender('./2mb-test.svg','127.0.0.1', 9999)
-    sender.send_file()
+    #sender = Sender('./2mb-test.svg','127.0.0.1', 9999)
+    #sender.send_file()
     # test
     inputs = get_input()
-    sender2 = Sender(inputs[2],inputs[0], inputs[1])
-    sender2.send_file()
+    print(inputs)
+    sender2 = Sender(inputs[2],inputs[0], int(inputs[1]))
+    #sender2.send_file()
