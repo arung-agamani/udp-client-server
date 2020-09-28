@@ -52,7 +52,7 @@ class Sender():
         self.socket.settimeout(initialTimeout)
         while seqnum != len(self.packets_queue):
             # send a packet
-            if totalConsecutiveRetry > 10:
+            if totalConsecutiveRetry > 6:
                 break
             if seqnum != len(self.packets_queue) - 1:
                 # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
@@ -81,8 +81,8 @@ class Sender():
                     print(
                         "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
                     if seqnum != 0:
-                        self.socket.settimeout(2 * initialTimeout)
-                        initialTimeout *= 2
+                        self.socket.settimeout(min(10, 2 * initialTimeout))
+                        initialTimeout = min(10, 2 * initialTimeout)
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.",
@@ -106,8 +106,8 @@ class Sender():
                     print(
                         "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
                     if seqnum != 0:
-                        self.socket.settimeout(2 * initialTimeout)
-                        initialTimeout *= 2
+                        self.socket.settimeout(min(10, 2 * initialTimeout))
+                        initialTimeout = min(10, 2 * initialTimeout)
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.",
