@@ -35,13 +35,15 @@ class Sender():
         # this is where things start to escalate real quickly
         # implement using Stop-and-Wait protocol
         seqnum = 0
-        self.socket.settimeout(1)
+        initialTimeout = 3
+        self.socket.settimeout(initialTimeout)
         while seqnum != len(self.packets_queue):
             # send a packet
             if seqnum != len(self.packets_queue) - 1:
                 # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
                 self.send_packet(self.packets_queue[seqnum])
                 # start timeout
+                startTime = time.time()
                 # if packet arrives, increment seqnum
                 try:
                     response, server_address = self.socket.recvfrom(2 << 16)
@@ -51,10 +53,16 @@ class Sender():
                         if received_packet.seqnum == seqnum:
                             print(
                                 "ACK packet received, sending next package, if any")
+                            stopTime = time.time()
+                            deltaTime = stopTime - startTime
+                            initialTimeout = 2 * deltaTime
+                            self.socket.settimeout(2 * deltaTime)
                             seqnum += 1
                 except socket.timeout:
                     print("Timeout on sending packet seqnum:", seqnum)
                     print("Re-attempting...")
+                    self.socket.settimeout(2 * initialTimeout)
+                    initialTimeout *= 2
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
