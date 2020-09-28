@@ -57,10 +57,12 @@ class Sender():
                             deltaTime = stopTime - startTime
                             initialTimeout = 2 * deltaTime
                             self.socket.settimeout(2 * deltaTime)
+                            print("Timeout now at : ", initialTimeout)
                             seqnum += 1
                 except socket.timeout:
                     print("Timeout on sending packet seqnum:", seqnum)
-                    print("Re-attempting...")
+                    print(
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
                     self.socket.settimeout(2 * initialTimeout)
                     initialTimeout *= 2
                 except ConnectionResetError:
@@ -80,8 +82,10 @@ class Sender():
                                 "FIN-ACK packet received. Ending the current transmission")
                             seqnum += 1
                 except socket.timeout:
-                    print("Timeout on sending packet seqnum:", seqnum)
-                    print("Re-attempting...")
+                    print(
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
+                    self.socket.settimeout(2 * initialTimeout)
+                    initialTimeout *= 2
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
