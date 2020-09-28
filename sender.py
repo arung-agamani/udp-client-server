@@ -23,7 +23,7 @@ class Sender():
 
     def create_socket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind(('127.0.0.1', 5000))
+        self.socket.bind(('', 5000))
         print("Socket created")
 
     def send_packet(self, packet: Packet):
@@ -91,11 +91,16 @@ def get_input():
 
 
 if __name__ == "__main__":
-    sender = Sender('./2mb-test.svg', '127.0.0.1', 9999)
+    # sender = Sender('./2mb-test.svg', '127.0.0.2', 9999)
     # sender.send_file()
     # test
 
-    # inputs = get_input()
-    # print(inputs)
-    # sender2 = Sender(inputs[2],inputs[0], int(inputs[1]))
+    inputs = get_input()
+    print(inputs)
+    targetList = inputs[0].split(',')
+    print(targetList)
+    senderTask = []
+    for target in targetList:
+        senderTask.append(Sender(inputs[2], target, int(inputs[1])))
+    # sender2 = Sender(inputs[2], inputs[0], int(inputs[1]))
     # sender2.send_file()

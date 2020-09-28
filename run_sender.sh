@@ -8,4 +8,6 @@
 
 echo "Sender"
 # test
-echo -e "209.97.168.63\n9999\n./2mb-test.svg" | python3 sender.py
+$a = "127.0.0.1"
+$b = "9999"
+echo -e "$1\n$2\n$3" | python3 sender.py

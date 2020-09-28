@@ -13,7 +13,7 @@ class Receiver():
         self.port = port
         self.out_dir = out_dir
         self.socket = None
-        self.filemanager = FileManager('./out/test', 4)
+        self.filemanager = FileManager('./out/test-'+str(self.port)+'.bin', 4)
         self.listen_socket()
         self.listen()
 
@@ -50,4 +50,5 @@ class Receiver():
 
 
 if __name__ == "__main__":
-    recv = Receiver(9999, './outDir')
+    i1 = int(input())
+    recv = Receiver(i1, '')
