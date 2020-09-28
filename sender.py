@@ -6,6 +6,7 @@ from packet_builder import Packet, PacketType, bytes2hexstring
 from packet_unwrapper import PacketUnwrapper
 import sys
 
+
 class Sender():
     def __init__(self, filename, host, port):
         self.host = host
@@ -14,6 +15,7 @@ class Sender():
         self.packets_queue = []
         self.create_socket()
         self.create_file_queue()
+        self.send_file()
 
     def create_file_queue(self):
         self.packets_queue = file_manager.split(self.filename, 32727)
@@ -45,9 +47,10 @@ class Sender():
                     response, server_address = self.socket.recvfrom(2 << 16)
                     received_packet = PacketUnwrapper(response)
                     print("Received seqnum: ", received_packet.seqnum)
-                    if received_packet.raw_type == 0x01: #ACK Package
+                    if received_packet.raw_type == 0x01:  # ACK Package
                         if received_packet.seqnum == seqnum:
-                            print("ACK packet received, sending next package, if any")
+                            print(
+                                "ACK packet received, sending next package, if any")
                             seqnum += 1
                 except socket.timeout:
                     print("Timeout on sending packet seqnum:", seqnum)
@@ -55,7 +58,7 @@ class Sender():
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
-            else: # Send FIN package
+            else:  # Send FIN package
                 try:
                     print("Sending FIN package")
                     # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
@@ -65,7 +68,8 @@ class Sender():
                     print("Received seqnum: ", received_packet.seqnum)
                     if received_packet.raw_type == 0x03:
                         if received_packet.seqnum == seqnum:
-                            print("FIN-ACK packet received. Ending the current transmission")
+                            print(
+                                "FIN-ACK packet received. Ending the current transmission")
                             seqnum += 1
                 except socket.timeout:
                     print("Timeout on sending packet seqnum:", seqnum)
@@ -76,18 +80,22 @@ class Sender():
 
 # get input dari run_sender.h
 # return input yg berisi address, port, dan path file
-def get_input ():
-    inputs = [] # 3 input untuk sender
+
+
+def get_input():
+    inputs = []  # 3 input untuk sender
     for line in sys.stdin:
-        line = ((line.replace("-e","")).replace("\n","")).replace(" ","")
-        inputs.append(line)   
+        line = ((line.replace("-e", "")).replace("\n", "")).replace(" ", "")
+        inputs.append(line)
     return inputs
 
+
 if __name__ == "__main__":
-    #sender = Sender('./2mb-test.svg','127.0.0.1', 9999)
-    #sender.send_file()
+    sender = Sender('./2mb-test.svg', '127.0.0.1', 9999)
+    # sender.send_file()
     # test
-    inputs = get_input()
-    print(inputs)
-    sender2 = Sender(inputs[2],inputs[0], int(inputs[1]))
-    #sender2.send_file()
+
+    # inputs = get_input()
+    # print(inputs)
+    # sender2 = Sender(inputs[2],inputs[0], int(inputs[1]))
+    # sender2.send_file()
