@@ -11,6 +11,7 @@ class PacketUnwrapper():
         self.get_packet_seqnum()
         self.get_packet_checksum()
         self.get_packet_data()
+        self.is_valid = self.verify_integrity()
     
     def get_packet_length(self):
         self.length = int(struct.unpack(">H", self.raw_length)[0])
@@ -23,6 +24,22 @@ class PacketUnwrapper():
 
     def get_packet_data(self):
         self.data = struct.unpack("{}s".format(self.length), self.raw_buffer[7:])[0]
+
+    def verify_integrity(self):
+        data = self.data
+        sum = 0x00
+        data_len = len(data)
+        if (data_len % 2):
+            data_len += 1
+            data += struct.pack( '!B' , 0)
+
+        sum = (data[0] << 8) + (data[1])
+        for i in range(2, data_len, 2):
+            w = (data[i] << 8) + (data[i+1])
+            sum ^= w
+        sum = sum & 0xFFFF
+        sum = struct.pack('2s', sum.to_bytes(2, byteorder="big"))
+        return True if sum == self.raw_checksum else False
 
     def print(self):
         print(self.raw_type)

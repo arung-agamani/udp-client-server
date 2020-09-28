@@ -28,13 +28,13 @@ class Receiver():
             payload, client_address = self.socket.recvfrom(2 << 16)
             packet = PacketUnwrapper(payload)
             # print("Incoming package: ", bytes2hexstring(packet.data))
-            if packet.raw_type == 0x00:
+            if packet.raw_type == 0x00 and packet.is_valid:
                 if packet.seqnum == seqnum: #duplicate or initial
                     print("Echoing ACK package to " + str(client_address))
                     seqnum += 1
                     self.filemanager.add(packet.data)
-                    if random.random() < 0.05:
-                        time.sleep(1.1)
+                    # if random.random() < 0.05:
+                    #     time.sleep(1.1)
                     sent = self.socket.sendto(Packet(PacketType.ACK, 1, packet.seqnum, b"\x00").buffer, client_address)
                     if seqnum % 5 == 0:
                         self.filemanager.write()
