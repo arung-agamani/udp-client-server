@@ -52,7 +52,7 @@ class Sender():
         self.socket.settimeout(initialTimeout)
         while seqnum != len(self.packets_queue):
             # send a packet
-            if totalConsecutiveRetry > 6:
+            if totalConsecutiveRetry > 10:
                 break
             if seqnum != len(self.packets_queue) - 1:
                 # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
@@ -74,13 +74,15 @@ class Sender():
                             self.socket.settimeout(2 * deltaTime)
                             print("Timeout now at : ", initialTimeout)
                             seqnum += 1
+                            totalConsecutiveRetry = 0
                 except socket.timeout:
                     print("Timeout on sending packet seqnum:", seqnum)
                     print(
                         "Re-attempting with time window {} seconds".format(2*initialTimeout))
-                    self.socket.settimeout(2 * initialTimeout)
-                    initialTimeout *= 2
-                    totalConsecutiveRetry += 1
+                    if seqnum != 0:
+                        self.socket.settimeout(2 * initialTimeout)
+                        initialTimeout *= 2
+                        totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
@@ -97,12 +99,14 @@ class Sender():
                             print(
                                 "FIN-ACK packet received. Ending the current transmission")
                             seqnum += 1
+                            totalConsecutiveRetry = 0
                 except socket.timeout:
                     print(
                         "Re-attempting with time window {} seconds".format(2*initialTimeout))
-                    self.socket.settimeout(2 * initialTimeout)
-                    initialTimeout *= 2
-                    totalConsecutiveRetry += 1
+                    if seqnum != 0:
+                        self.socket.settimeout(2 * initialTimeout)
+                        initialTimeout *= 2
+                        totalConsecutiveRetry += 1
                 except ConnectionResetError:
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
