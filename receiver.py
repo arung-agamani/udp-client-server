@@ -46,6 +46,8 @@ class Receiver():
                         Packet(PacketType.FINACK, 1, packet.seqnum, b"\x00").buffer, client_address)
                     self.filemanager.write_end()
                     break
+                else:
+                    print("Corrupted data")
             except socket.timeout:
                 print("Timed out")
 

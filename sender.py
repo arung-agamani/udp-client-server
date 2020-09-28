@@ -22,7 +22,7 @@ class Sender():
         self.socket.close()
 
     def create_file_queue(self):
-        self.packets_queue = file_manager.split(self.filename, (2 << 14))
+        self.packets_queue = file_manager.split(self.filename, (2 << 10))
         print("File splitted")
 
     def create_socket(self, _port):
@@ -79,14 +79,13 @@ class Sender():
                     print("Timeout on sending packet seqnum:",
                           seqnum, file=sys.stderr)
                     print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
                     if seqnum != 0:
                         self.socket.settimeout(min(10, 2 * initialTimeout))
                         initialTimeout = min(10, 2 * initialTimeout)
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.",
-                          file=sys.stderr)
+                    print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
             else:  # Send FIN package
                 try:
@@ -104,14 +103,13 @@ class Sender():
                             totalConsecutiveRetry = 0
                 except socket.timeout:
                     print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout), file=sys.stderr)
+                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
                     if seqnum != 0:
                         self.socket.settimeout(min(10, 2 * initialTimeout))
                         initialTimeout = min(10, 2 * initialTimeout)
                         totalConsecutiveRetry += 1
                 except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.",
-                          file=sys.stderr)
+                    print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
 
 # get input dari run_sender.h
