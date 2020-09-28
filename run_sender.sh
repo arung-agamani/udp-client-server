@@ -6,4 +6,6 @@
 # $3 berisi path file yang akan dikirim (akan diisi oleh autograder)
 # Contoh: echo -e "$1\n$2\n$3" | python3 sender.py
 
-echo -e "127.0.0.1\n9999\ntest.txt"
+echo "Sender"
+# test
+echo -e "127.0.0.1\n999\n./2mb-test.svg" | python3 sender.py
