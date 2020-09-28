@@ -7,3 +7,5 @@
 # Contoh: echo -e "$1\n$2\n$3" | python3 sender.py
 
 echo "Sender"
+# test
+echo -e "127.0.0.1\n999\n./2mb-test.svg" | python3 sender.py

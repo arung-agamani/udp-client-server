@@ -4,6 +4,7 @@ import threading
 import file_manager
 from packet_builder import Packet, PacketType, bytes2hexstring
 from packet_unwrapper import PacketUnwrapper
+import sys
 
 class Sender():
     def __init__(self, filename, host, port):
@@ -73,6 +74,20 @@ class Sender():
                     print("Connection reset. Peer is probably not open.")
                 # if timeout arrives, do nothing, let the loop goes as to send same packet
 
+# get input dari run_sender.h
+# return input yg berisi address, port, dan path file
+def get_input():
+    inputs = [] # 3 input untuk sender
+    for line in sys.stdin:
+        sys.stdout.write(line)
+        line = (line.replace("-e","")).replace("\n","")
+        inputs.append(line)
+    return inputs
+
 if __name__ == "__main__":
     sender = Sender('./2mb-test.svg','127.0.0.1', 9999)
     sender.send_file()
+    # test
+    inputs = get_input()
+    sender2 = Sender(inputs[2],inputs[0], inputs[1])
+    sender2.send_file()
