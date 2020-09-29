@@ -24,10 +24,11 @@ class PacketUnwrapper():
         self.checksum = int(struct.unpack(">H", self.raw_checksum)[0])
 
     def get_packet_data(self):
-        self.data = struct.unpack("{}s".format(
-            self.length), self.raw_buffer[7:])[0]
+        self.data = self.raw_buffer[7:]
 
     def verify_integrity(self):
+        if self.length != len(self.data):
+            return False
         print(bytes(self.raw_type))
         data = self.raw_type.to_bytes(
             1, byteorder="big") + self.raw_length + self.data
