@@ -1,13 +1,16 @@
 import struct
 
+
 def bytes2hexstring(byte_obj):
     return ''.join('{:02x}'.format(x) for x in byte_obj)
+
 
 class PacketType():
     DATA = b"\x00"
     ACK = b"\x01"
     FIN = b"\x02"
     FINACK = b"\x03"
+
 
 class Packet():
     '''Packet Builder
@@ -19,6 +22,7 @@ class Packet():
 
         Convert data into byte string or raw array of bytes first
     '''
+
     def __init__(self, type, length, seq_num, data):
         self.set_type(type)
         self.data_length = length
@@ -37,21 +41,24 @@ class Packet():
     def set_seq_num(self, seq_num: int):
         self.seq_num = struct.pack('2s', seq_num.to_bytes(2, byteorder="big"))
 
-    def set_checksum(self):        
-        checksum = self.calc_checksum(self.data)
-        self.checksum = struct.pack('2s', checksum.to_bytes(2, byteorder="big"))
+    def set_checksum(self):
+        checksum = self.calc_checksum(self.type, self.length, self.data)
+        self.checksum = struct.pack(
+            '2s', checksum.to_bytes(2, byteorder="big"))
+
     def set_data(self, data):
         if (len(data) > self.data_length):
             print('Data segmentation is too big')
         else:
             self.data = struct.pack('{}s'.format(self.data_length), data)
 
-    def calc_checksum(self, data):
+    def calc_checksum(self, _type, length, data):
         sum = 0x00
+        data = _type + length + data
         data_len = len(data)
         if (data_len % 2):
             data_len += 1
-            data += struct.pack( '!B' , 0)
+            data += struct.pack('!B', 0)
 
         sum = (data[0] << 8) + (data[1])
         for i in range(2, data_len, 2):
