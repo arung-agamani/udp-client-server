@@ -3,6 +3,7 @@ import socket
 from packet_builder import Packet, PacketType, bytes2hexstring
 from packet_unwrapper import PacketUnwrapper
 from file_manager import FileManager
+import time
 
 
 class Receiver():
@@ -21,8 +22,10 @@ class Receiver():
     def listen(self):
         # set current seqnum
         seqnum = 0
+        client_adr = None
         while True:
             request, client_address = self.socket.recvfrom(32774)
+            client_adr = client_address
             packet = PacketUnwrapper(request)
             if packet.raw_type == 0x00:  # DATA packet
                 print("Received DATA")
@@ -55,6 +58,10 @@ class Receiver():
                     print("Out of order FIN")
             else:
                 print("Unknown packet")
+        for i in range(4):
+            self.socket.sendto(
+                Packet(PacketType.FINACK, 1, seqnum, b"\x70").buffer, client_adr)
+            time.sleep(i+1)
 
 
 if __name__ == "__main__":
