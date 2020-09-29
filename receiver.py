@@ -19,37 +19,42 @@ class Receiver():
         self.socket.bind(('', self.port))
 
     def listen(self):
-        print("Listening incoming packages from " + str(self.port))
+        # set current seqnum
         seqnum = 0
-        self.socket.settimeout(10)
         while True:
-            try:
-                payload, client_address = self.socket.recvfrom(2 << 16)
-                packet = PacketUnwrapper(payload)
-                # print("Incoming package: ", bytes2hexstring(packet.data))
-                if packet.raw_type == 0x00 and packet.is_valid:
-                    if packet.seqnum == seqnum:  # duplicate or initial
-                        print("Echoing ACK package to " + str(client_address))
-                        seqnum += 1
+            request, client_address = self.socket.recvfrom(32774)
+            packet = PacketUnwrapper(request)
+            if packet.raw_type == 0x00:  # DATA packet
+                print("Received DATA")
+                if packet.seqnum == seqnum:  # In order
+                    print("In order packet, seqnum: ", seqnum)
+                    if packet.is_valid:  # validate
+                        print("Data valid! Processing")
                         self.filemanager.add(packet.data)
-                        # if random.random() < 0.05:
-                        #     time.sleep(1.1)
                         self.socket.sendto(
-                            Packet(PacketType.ACK, 1, packet.seqnum, b"\x00").buffer, client_address)
-                        if seqnum % 5 == 0:
-                            self.filemanager.write()
+                            Packet(PacketType.ACK, 1, seqnum, b"\x69").buffer, client_address)
+                        seqnum += 1
                     else:
-                        pass
-                elif packet.raw_type == 0x02:
-                    self.filemanager.add(packet.data)
-                    self.socket.sendto(
-                        Packet(PacketType.FINACK, 1, packet.seqnum, b"\x00").buffer, client_address)
-                    self.filemanager.write_end()
-                    break
+                        print("Packet with seqnum {} is corrupted.".format(seqnum))
                 else:
-                    print("Corrupted data")
-            except socket.timeout:
-                print("Timed out")
+                    print("Packet out of order")
+            elif packet.raw_type == 0x02:  # FIN packet. TODO: Handle if FIN-ACK is lost
+                print("Received FIN")
+                if packet.seqnum == seqnum:  # in order
+                    print("In order FIN")
+                    if packet.is_valid:  # data validated
+                        print("Data valid! Ending")
+                        self.socket.sendto(
+                            Packet(PacketType.FINACK, 1, seqnum, b"\x70").buffer, client_address)
+                        self.filemanager.add(packet.data)
+                        self.filemanager.write_end()
+                        break
+                    else:
+                        print("FIN Data corrupted")
+                else:
+                    print("Out of order FIN")
+            else:
+                print("Unknown packet")
 
 
 if __name__ == "__main__":

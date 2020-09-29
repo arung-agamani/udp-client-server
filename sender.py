@@ -22,7 +22,7 @@ class Sender():
         self.socket.close()
 
     def create_file_queue(self):
-        self.packets_queue = file_manager.split(self.filename, (2 << 10))
+        self.packets_queue = file_manager.split(self.filename, (32767))
         print("File splitted")
 
     def create_socket(self, _port):
@@ -44,76 +44,53 @@ class Sender():
         pass
 
     def send_file(self):
-        # this is where things start to escalate real quickly
-        # implement using Stop-and-Wait protocol
-        seqnum = 0
-        initialTimeout = 3
-        totalConsecutiveRetry = 0
-        self.socket.settimeout(initialTimeout)
-        while seqnum != len(self.packets_queue):
-            # send a packet
-            if totalConsecutiveRetry > 6:
-                break
-            if seqnum != len(self.packets_queue) - 1:
-                # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
-                self.send_packet(self.packets_queue[seqnum])
-                # start timeout
-                startTime = time.time()
-                # if packet arrives, increment seqnum
-                try:
-                    response, server_address = self.socket.recvfrom(2 << 16)
-                    received_packet = PacketUnwrapper(response)
-                    print("Received seqnum: ", received_packet.seqnum)
-                    if received_packet.raw_type == 0x01:  # ACK Package
-                        if received_packet.seqnum == seqnum:
-                            print(
-                                "ACK packet received, sending next package, if any")
-                            stopTime = time.time()
-                            deltaTime = stopTime - startTime
-                            initialTimeout = 2 * deltaTime
-                            self.socket.settimeout(2 * deltaTime)
-                            print("Timeout now at : ", initialTimeout)
-                            seqnum += 1
-                            totalConsecutiveRetry = 0
-                except socket.timeout:
-                    print("Timeout on sending packet seqnum:",
-                          seqnum, file=sys.stderr)
-                    print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
-                    if seqnum != 0:
-                        self.socket.settimeout(min(10, 2 * initialTimeout))
-                        initialTimeout = min(10, 2 * initialTimeout)
-                        totalConsecutiveRetry += 1
-                except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.")
-                # if timeout arrives, do nothing, let the loop goes as to send same packet
-            else:  # Send FIN package
-                try:
-                    print("Sending FIN package")
-                    # print("Sending packet with seqnum : ", seqnum, bytes2hexstring(self.packets_queue[seqnum].data))
-                    self.send_packet(self.packets_queue[seqnum])
-                    response, server_address = self.socket.recvfrom(2 << 16)
-                    received_packet = PacketUnwrapper(response)
-                    print("Received seqnum: ", received_packet.seqnum)
-                    if received_packet.raw_type == 0x03:
-                        if received_packet.seqnum == seqnum:
-                            print(
-                                "FIN-ACK packet received. Ending the current transmission")
-                            seqnum += 1
-                            totalConsecutiveRetry = 0
-                except socket.timeout:
-                    print(
-                        "Re-attempting with time window {} seconds".format(2*initialTimeout))
-                    if seqnum != 0:
-                        self.socket.settimeout(min(10, 2 * initialTimeout))
-                        initialTimeout = min(10, 2 * initialTimeout)
-                        totalConsecutiveRetry += 1
-                except ConnectionResetError:
-                    print("Connection reset. Peer is probably not open.")
-                # if timeout arrives, do nothing, let the loop goes as to send same packet
+        # HANDLE THESE STUFF
+        # REORDERING, DUPLICATES, CORRUPTS, LOST
 
-# get input dari run_sender.h
-# return input yg berisi address, port, dan path file
+        # set initial timeout
+        timeout = 1  # 3 seconds
+        self.socket.settimeout(timeout)
+        # set number of retries
+        # consecutiveRetryCount = 0  # will be incremented for every timeout
+        # sequence number
+        seqNum = 0
+        while seqNum < len(self.packets_queue):
+            # handle initial data sending
+            self.socket.sendto(
+                self.packets_queue[seqNum].buffer, (self.host, self.port))
+            # try except
+            try:
+                response, server_address = self.socket.recvfrom(8)
+                packet = PacketUnwrapper(response)
+                if packet.raw_type == 0x01:  # ack package
+                    print("Received ACK")
+                    if packet.seqnum == seqNum:
+                        print("ACK in order!")
+                        if packet.is_valid:
+                            print("[{}] was sent succesfully!".format(seqNum))
+                            seqNum += 1
+                        else:
+                            print("ACK packet seqnum {} is corrupted".format(seqNum))
+                    else:
+                        print(
+                            "ACK received but not in order. Seqnum recv: ", packet.seqnum)
+                elif packet.raw_type == 0x03:  # finack
+                    print("Received FIN-ACK")
+                    if packet.seqnum == seqNum:
+                        print("FIN-ACK in order!")
+                        if packet.is_valid:
+                            print("Last packet was sent succesfully!")
+                            break
+                        else:
+                            print("FINACK packet seqnum is corrupted")
+                    else:
+                        print("FIN-ACK received but not in order. This is weird")
+            except socket.timeout:
+                print("Socket timeout on waiting for [{}] ACK".format(seqNum))
+                # increase timeout
+                timeout = min(2*timeout, 5)
+                print("Setting socket timeout to", timeout)
+                self.socket.settimeout(timeout)
 
 
 def get_input():
@@ -130,9 +107,7 @@ if __name__ == "__main__":
     # test
 
     inputs = get_input()
-    print(inputs)
     targetList = inputs[0].split(',')
-    print(targetList)
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         for target in targetList:
             executor.submit(Sender, inputs[2], target, int(inputs[1]))
