@@ -61,7 +61,7 @@ class Receiver():
         for i in range(10):
             self.socket.sendto(
                 Packet(PacketType.FINACK, 1, seqnum, b"\x70").buffer, client_adr)
-            time.sleep(min(i+1, 3))
+            time.sleep(min(i+1, 1.5))
 
 
 if __name__ == "__main__":

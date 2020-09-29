@@ -88,7 +88,7 @@ class Sender():
             except socket.timeout:
                 print("Socket timeout on waiting for [{}] ACK".format(seqNum))
                 # increase timeout
-                timeout = min(2*timeout, 5)
+                timeout = min(2*timeout, 2)
                 print("Setting socket timeout to", timeout)
                 self.socket.settimeout(timeout)
 
