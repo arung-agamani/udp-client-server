@@ -58,10 +58,10 @@ class Receiver():
                     print("Out of order FIN")
             else:
                 print("Unknown packet")
-        for i in range(4):
+        for i in range(10):
             self.socket.sendto(
                 Packet(PacketType.FINACK, 1, seqnum, b"\x70").buffer, client_adr)
-            time.sleep(i+1)
+            time.sleep(min(i+1, 3))
 
 
 if __name__ == "__main__":
