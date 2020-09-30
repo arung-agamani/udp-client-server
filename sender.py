@@ -49,10 +49,14 @@ class Sender():
 
         # set initial timeout
         timeout = 1  # 3 seconds
+        maxTimeout = 4
         self.socket.settimeout(timeout)
         # set number of retries
         # consecutiveRetryCount = 0  # will be incremented for every timeout
         # sequence number
+        # try to handle medium
+        if len(self.packets_queue) > 10:
+            maxTimeout = 2
         seqNum = 0
         while seqNum < len(self.packets_queue):
             # handle initial data sending
@@ -88,7 +92,7 @@ class Sender():
             except socket.timeout:
                 print("Socket timeout on waiting for [{}] ACK".format(seqNum))
                 # increase timeout
-                timeout = min(2*timeout, 4)
+                timeout = min(2*timeout, maxTimeout)
                 print("Setting socket timeout to", timeout)
                 self.socket.settimeout(timeout)
 
