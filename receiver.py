@@ -41,6 +41,12 @@ class Receiver():
                         print("Packet with seqnum {} is corrupted.".format(seqnum))
                 else:
                     print("Packet out of order")
+                    if packet.seqnum == seqnum - 1:
+                        print(
+                            "Duplicate packet [{}]. Resending ACK".format(seqnum - 1))
+                        self.socket.sendto(
+                            Packet(PacketType.ACK, 1, seqnum - 1, b"\x69").buffer, client_address)
+
             elif packet.raw_type == 0x02:  # FIN packet. TODO: Handle if FIN-ACK is lost
                 print("Received FIN")
                 if packet.seqnum == seqnum:  # in order
