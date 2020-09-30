@@ -56,7 +56,7 @@ class Sender():
         # sequence number
         # try to handle medium
         if len(self.packets_queue) > 10:
-            maxTimeout = 2
+            maxTimeout = 2.5
         seqNum = 0
         while seqNum < len(self.packets_queue):
             # handle initial data sending
