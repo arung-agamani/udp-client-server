@@ -24,6 +24,7 @@ class Receiver():
         seqnum = 0
         client_adr = None
         while True:
+            startTime = time.time()
             request, client_address = self.socket.recvfrom(32774)
             client_adr = client_address
             packet = PacketUnwrapper(request)
@@ -37,6 +38,9 @@ class Receiver():
                         self.socket.sendto(
                             Packet(PacketType.ACK, 1, seqnum, b"\x69").buffer, client_address)
                         seqnum += 1
+                        stopTime = time.time()
+                        print("Delay between valid packets: {} seconds".format(
+                            stopTime - startTime))
                     else:
                         print("Packet with seqnum {} is corrupted.".format(seqnum))
                 else:
@@ -46,6 +50,9 @@ class Receiver():
                             "Duplicate packet [{}]. Resending ACK".format(seqnum - 1))
                         self.socket.sendto(
                             Packet(PacketType.ACK, 1, seqnum - 1, b"\x69").buffer, client_address)
+                    else:
+                        print("What packet order is this. Expect [{}] Got [{}]".format(
+                            seqnum, packet.seqnum))
 
             elif packet.raw_type == 0x02:  # FIN packet. TODO: Handle if FIN-ACK is lost
                 print("Received FIN")
